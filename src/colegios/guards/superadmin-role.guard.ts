@@ -1,31 +1,34 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Request } from "express";
-import { SupabaseService } from "../../infrastructure/supabase/supabase.service";
 import { UsersService } from "../../users/users.service";
 
+/**
+ * Verifica que el usuario autenticado tenga rol SUPERADMIN.
+ *
+ * NO valida el token: eso lo hace `CognitoAuthGuard`, que debe declararse ANTES
+ * en el mismo `@UseGuards(...)` -los guards corren en orden y este lee el
+ * `request.user` que aquel deja.
+ *
+ * El rol se toma de la BASE DE DATOS, no del token. Es a proposito: un cambio de
+ * rol surte efecto de inmediato, sin esperar a que el usuario renueve su token.
+ */
 @Injectable()
 export class SuperAdminRoleGuard implements CanActivate {
-  constructor(
-    private readonly supabaseService: SupabaseService,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { superAdminUser?: unknown }>();
-    const authorization = request.headers.authorization;
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user?: { id?: string; email?: string }; superAdminUser?: unknown }>();
 
-    if (!authorization) {
+    if (!request.user?.id) {
       throw new UnauthorizedException("Authorization header is required.");
     }
 
-    const [scheme, token] = authorization.split(" ");
-
-    if (scheme?.toLowerCase() !== "bearer" || !token) {
-      throw new UnauthorizedException("Invalid Authorization header.");
-    }
-
-    const supabaseUser = await this.supabaseService.getUser(token);
-    const profile = await this.usersService.findBySupabaseUserId(supabaseUser.id);
+    const profile = await this.usersService.findByIdentity({
+      sub: request.user.id,
+      email: request.user.email,
+    });
 
     if (profile.role !== "SUPERADMIN") {
       throw new UnauthorizedException("SuperAdmin role required.");

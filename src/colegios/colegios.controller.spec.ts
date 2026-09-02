@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ColegiosController } from './colegios.controller';
 import { ColegiosService } from './colegios.service';
 import { SuperAdminRoleGuard } from './guards/superadmin-role.guard';
+import { CognitoAuthGuard } from '../auth/guards/cognito-auth.guard';
 
 describe('ColegiosController', () => {
   let controller: ColegiosController;
@@ -31,6 +32,8 @@ describe('ColegiosController', () => {
         },
       ],
     })
+      .overrideGuard(CognitoAuthGuard)
+      .useValue({ canActivate: () => true })
       .overrideGuard(SuperAdminRoleGuard)
       .useValue({ canActivate: () => true })
       .compile();

@@ -21,7 +21,7 @@ import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
 import { RegisterDto } from "./dto/register.dto";
-import { SupabaseAuthGuard } from "./guards/supabase-auth.guard";
+import { CognitoAuthGuard } from "./guards/cognito-auth.guard";
 import { UpdateMeDto } from "./dto/update-me.dto";
 
 @ApiTags("auth")
@@ -58,7 +58,7 @@ export class AuthController {
     return this.authService.refresh(dto, request.ip);
   }
 
-  @UseGuards(SupabaseAuthGuard)
+  @UseGuards(CognitoAuthGuard)
   @Post("logout")
   @HttpCode(200)
   @ApiBearerAuth()
@@ -71,7 +71,7 @@ export class AuthController {
     return this.authService.logout(authorization, request.ip);
   }
 
-  @UseGuards(SupabaseAuthGuard)
+  @UseGuards(CognitoAuthGuard)
   @Get("me")
   @ApiBearerAuth()
   @ApiOperation({ summary: "Obtener perfil autenticado" })
@@ -82,7 +82,7 @@ export class AuthController {
     );
   }
 
-  @UseGuards(SupabaseAuthGuard)
+  @UseGuards(CognitoAuthGuard)
   @Patch("me")
   @ApiBearerAuth()
   @ApiOperation({ summary: "Actualizar perfil autenticado" })

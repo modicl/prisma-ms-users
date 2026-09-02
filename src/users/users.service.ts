@@ -30,6 +30,36 @@ export class UsersService {
     });
   }
 
+  /**
+   * Resuelve el perfil del usuario autenticado tolerando la migracion de IdP.
+   *
+   * Durante la convivencia Supabase -> Cognito hay dos identificadores: las filas
+   * existentes tienen el UUID de Supabase en `id_supabase`, y los tokens nuevos
+   * traen el `sub` de Cognito, que es distinto. Se intenta primero por id -asi
+   * sigue andando si algun dia se backfillea la columna con el sub de Cognito- y
+   * se cae al email, que es `@unique` y lo emiten los dos proveedores.
+   */
+  async findByIdentity(identity: {
+    sub?: string;
+    email?: string;
+  }): Promise<User> {
+    if (identity.sub) {
+      const bySub = await this.prismaService.user.findUnique({
+        where: { supabaseUserId: identity.sub },
+      });
+      if (bySub) return bySub;
+    }
+
+    if (identity.email) {
+      const byEmail = await this.prismaService.user.findUnique({
+        where: { email: identity.email },
+      });
+      if (byEmail) return byEmail;
+    }
+
+    throw new NotFoundException("User profile not found.");
+  }
+
   async findBySupabaseUserId(supabaseUserId: string): Promise<User> {
     const user = await this.prismaService.user.findUnique({
       where: { supabaseUserId },

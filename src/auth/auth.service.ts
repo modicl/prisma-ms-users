@@ -194,13 +194,16 @@ export class AuthService {
   }
 
   async me(request: AuthenticatedRequest) {
-    const supabaseUserId = request.user?.id;
+    const sub = request.user?.id;
 
-    if (!supabaseUserId) {
+    if (!sub) {
       throw new BadRequestException("Authenticated user not found.");
     }
 
-    return this.usersService.findBySupabaseUserId(supabaseUserId);
+    return this.usersService.findByIdentity({
+      sub,
+      email: request.user?.email,
+    });
   }
 
   async updateMe(

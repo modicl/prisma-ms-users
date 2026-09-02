@@ -14,6 +14,7 @@ describe("AuthService", () => {
   const usersService = {
     createProfile: jest.fn(),
     findBySupabaseUserId: jest.fn(),
+    findByIdentity: jest.fn(),
     findByEmail: jest.fn(),
     updateProfile: jest.fn(),
   } as any;
@@ -334,11 +335,16 @@ describe("AuthService", () => {
 
   describe("me", () => {
     it("returns profile when authenticated user is present", async () => {
-      usersService.findBySupabaseUserId.mockResolvedValue({ id: "perfil-1" });
+      usersService.findByIdentity.mockResolvedValue({ id: "perfil-1" });
 
       await expect(
-        service.me({ user: { id: "supabase-1" } } as any),
+        service.me({ user: { id: "cognito-sub-1", email: "d@test.cl" } } as any),
       ).resolves.toEqual({ id: "perfil-1" });
+
+      expect(usersService.findByIdentity).toHaveBeenCalledWith({
+        sub: "cognito-sub-1",
+        email: "d@test.cl",
+      });
     });
 
     it("throws BadRequestException when authenticated user is absent", async () => {

@@ -4,6 +4,11 @@ import request from "supertest";
 import { AppModule } from "../src/app.module";
 import { PrismaService } from "../src/infrastructure/prisma/prisma.service";
 
+// CognitoAuthGuard resuelve issuer y audience en su constructor con `getOrThrow`,
+// y AppModule lo instancia al compilar. Sin estas variables el modulo no levanta.
+process.env.COGNITO_USER_POOL_ID ??= "us-east-1_test";
+process.env.COGNITO_CLIENT_ID ??= "test-client-id";
+
 describe("Colegios Flow (e2e)", () => {
   let app: INestApplication;
   let prisma: PrismaService;

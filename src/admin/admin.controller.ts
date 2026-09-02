@@ -15,10 +15,11 @@ import { PrismaService } from "../infrastructure/prisma/prisma.service";
 import { SupabaseService } from "../infrastructure/supabase/supabase.service";
 import { AuditService } from "../infrastructure/audit/audit.service";
 import { AdminRoleGuard } from "./guards/admin-role.guard";
+import { CognitoAuthGuard } from "../auth/guards/cognito-auth.guard";
 
 @ApiTags("admin")
 @ApiBearerAuth()
-@UseGuards(AdminRoleGuard)
+@UseGuards(CognitoAuthGuard, AdminRoleGuard)
 @Controller("admin")
 export class AdminController {
   constructor(

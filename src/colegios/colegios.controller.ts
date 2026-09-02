@@ -20,12 +20,13 @@ import { CreateColegioDto } from "./dto/create-colegio.dto";
 import { UpdateColegioDto } from "./dto/update-colegio.dto";
 import { PaginationDto } from "./dto/pagination.dto";
 import { ProfessorsPaginationDto } from "./dto/professors-pagination.dto";
+import { CognitoAuthGuard } from "../auth/guards/cognito-auth.guard";
 
 type SuperAdminUser = { id: string; email?: string; nombreCompleto?: string };
 
 @ApiTags("superadmin")
 @ApiBearerAuth()
-@UseGuards(SuperAdminRoleGuard, RateLimitGuard)
+@UseGuards(CognitoAuthGuard, SuperAdminRoleGuard, RateLimitGuard)
 @Controller("superadmin/colegios")
 export class ColegiosController {
   constructor(private readonly colegiosService: ColegiosService) {}
